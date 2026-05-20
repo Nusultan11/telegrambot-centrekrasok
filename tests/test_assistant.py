@@ -6,6 +6,7 @@ import unittest
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
+from app.prompts.assistant_prompt import build_system_prompt  # noqa: E402
 from company_bot.assistant import CompanyAssistant  # noqa: E402
 from company_bot.knowledge import KnowledgeBase  # noqa: E402
 from company_bot.memory import DialogMemory  # noqa: E402
@@ -27,6 +28,14 @@ class FailingProvider(ChatProvider):
 
 
 class CompanyAssistantTest(unittest.IsolatedAsyncioTestCase):
+    async def test_prompt_layer_contains_guardrails(self) -> None:
+        prompt = build_system_prompt()
+
+        self.assertIn("Используй только переданный контекст", prompt)
+        self.assertIn("Не придумывай цены", prompt)
+        self.assertIn("Если в контексте нет точной информации", prompt)
+        self.assertIn("Не упоминай внутренние слова", prompt)
+
     async def test_prompt_contains_company_rules_and_context(self) -> None:
         provider = RecordingProvider()
         assistant = CompanyAssistant(
