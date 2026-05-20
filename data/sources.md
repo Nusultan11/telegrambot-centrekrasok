@@ -27,6 +27,18 @@ Prepared at: 2026-05-20.
   - general description;
   - product and service summary.
 
+## How To Buy Page
+
+- Source: How to buy / checkout instructions page
+- URL: https://centr-krasok.kz/about/howto/
+- Used for:
+  - order flow;
+  - checkout fields;
+  - manager confirmation after order;
+  - payment by VISA and MasterCard;
+  - Freedom Pay payment page;
+  - card payment and return notes.
+
 ## Contacts Page
 
 - Source: Contacts page
@@ -38,6 +50,18 @@ Prepared at: 2026-05-20.
   - working hours;
   - legal company information.
 
+## Promotions Page
+
+- Source: Promotions page
+- URL: https://centr-krasok.kz/promotions/
+- Used for:
+  - published promotion examples;
+  - promotion dates;
+  - promotion-related guardrails.
+- Notes:
+  - Promotions from this page can become outdated quickly.
+  - The assistant must not present listed promotions as currently active without confirmation.
+
 ## Delivery Page
 
 - Source: Delivery page
@@ -47,6 +71,24 @@ Prepared at: 2026-05-20.
   - pickup information;
   - delivery schedule;
   - limitations around changing delivery address.
+
+## Tinting And Color Selection Pages
+
+- Source: Color inspiration page
+- URL: https://centr-krasok.kz/colors/red/
+- Used for:
+  - palette navigation;
+  - warm/cold/contrast/pastel color groups;
+  - color selection guidance.
+
+- Source: Interior paint selection page
+- URL: https://centr-krasok.kz/tinting/
+- Used for:
+  - TOP-20 interior shades;
+  - color code examples;
+  - room/surface and area selection;
+  - washable/non-washable paint selection;
+  - color perception limitations.
 
 ## Designers Page
 
@@ -72,6 +114,15 @@ Prepared at: 2026-05-20.
   - project contact details;
   - examples of completed projects.
 
+## Partners Page
+
+- Source: Partners page
+- URL: https://centr-krasok.kz/partners/
+- Used for:
+  - partner-oriented navigation;
+  - cooperation context;
+  - general contact cross-check.
+
 ## Brands Page
 
 - Source: Brands page
@@ -79,6 +130,50 @@ Prepared at: 2026-05-20.
 - Used for:
   - brand names;
   - product assortment context.
+
+## Useful Materials Page
+
+- Source: Useful materials / glossary page
+- URL: https://centr-krasok.kz/useful/
+- Used for:
+  - explanations of paint-related terms;
+  - primer, wax, varnish, water-based paint, decorative plaster;
+  - adhesion, heat resistance, wash resistance and certification labels.
+
+## Reviews Page
+
+- Source: Reviews page
+- URL: https://centr-krasok.kz/feedbacks/
+- Used for:
+  - review flow;
+  - external review platforms: Google Maps, Yandex Maps and 2GIS.
+
+## News Page
+
+- Source: News page
+- URL: https://centr-krasok.kz/news/
+- Used for:
+  - public company updates;
+  - published news examples;
+  - promotion/news cross-check.
+
+## Articles Page
+
+- Source: Articles page
+- URL: https://centr-krasok.kz/articles/
+- Used for:
+  - article topics;
+  - educational content areas;
+  - product and interior inspiration context.
+
+## Color Psychotype Page
+
+- Source: Colors by psychotype page
+- URL: https://centr-krasok.kz/colors/psychotype/
+- Used for:
+  - color inspiration by psychotype;
+  - color groups for sanguine, choleric, phlegmatic and melancholic profiles;
+  - color perception limitations.
 
 ## External Sources
 
