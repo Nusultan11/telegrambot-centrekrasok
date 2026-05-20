@@ -116,8 +116,8 @@ tests/
 | `app/llm/` | Изолирует работу с OpenAI-compatible API, Gemini endpoint, Amvera и offline fallback. |
 | `app/rag/` | Делит Markdown-базу на chunks, использует keyword scoring и лёгкое расширение запроса для частых формулировок: контакты, строители, цены, наличие. |
 | `app/prompts/` | Хранит system prompt и guardrails против галлюцинаций. |
-| `app/router/` | Определяет intent сообщения: greeting, company overview, price, stock, promotions, vacancies, prompt safety, unknown product или general RAG. |
-| `app/policies/` | Возвращает deterministic guarded answers для рискованных intent и применяет company voice к LLM/fallback-ответам. |
+| `app/router/` | Определяет intent сообщения: greeting, FAQ, company overview, delivery, price, stock, promotions, vacancies, prompt safety, unknown product или general RAG. |
+| `app/policies/` | Возвращает deterministic FAQ/guarded answers для частых и рискованных intent и применяет company voice к LLM/fallback-ответам. |
 | `src/company_bot/assistant.py` | Оркестрирует Query Router, Answer Policy, retrieval, prompt, LLM call, память диалога и fallback. |
 | `src/company_bot/memory.py` | Хранит последние сообщения пользователя и ассистента в рамках чата. |
 | `src/company_bot/bot.py` | Принимает Telegram-сообщения и отправляет ответы пользователю. |
@@ -128,9 +128,9 @@ tests/
 
 1. Нормализует сообщение пользователя.
 2. Определяет intent через Query Router.
-3. Для рискованных сценариев возвращает deterministic guarded answer:
-   приветствие, цены, наличие, акции, вакансии, внутренний prompt и неизвестный
-   конкретный товар.
+3. Для частых FAQ и рискованных сценариев возвращает deterministic answer:
+   товары, бренды, услуги, доставка, приветствие, цены, наличие, акции,
+   вакансии, внутренний prompt и неизвестный конкретный товар.
 4. Для обычных вопросов о компании ищет релевантные Markdown chunks в локальной
    базе знаний.
 5. Собирает LLM prompt из найденного контекста и guardrails.
@@ -164,7 +164,7 @@ tests/
 - Поддерживается Amvera API.
 - Есть offline fallback для проверки retrieval без AI API.
 - Есть краткая память диалога.
-- Есть deterministic intent handling для приветствий, чувствительных вопросов и сценариев с высоким риском галлюцинаций.
+- Есть deterministic FAQ/intent handling для частых вопросов, приветствий, чувствительных вопросов и сценариев с высоким риском галлюцинаций.
 - Ассистент отвечает от лица компании, сохраняя guardrails против галлюцинаций.
 - Есть `.env.example`, README и тесты.
 

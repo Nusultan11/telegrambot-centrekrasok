@@ -88,6 +88,31 @@ COMPANY_OVERVIEW_PATTERNS = (
     "стоит обратиться",
 )
 
+PRODUCT_TERMS = (
+    "товары",
+    "товар",
+    "ассортимент",
+    "что продаете",
+    "что продаёте",
+    "что у вас есть",
+    "какие материалы",
+)
+
+BRAND_TERMS = (
+    "бренд",
+    "бренды",
+    "марки",
+    "производители",
+)
+
+SERVICE_TERMS = (
+    "услуги",
+    "услуга",
+    "предоставляете",
+    "что вы предлагаете",
+    "чем можете помочь",
+)
+
 DELIVERY_TERMS = (
     "доставка",
     "доставку",
@@ -195,6 +220,12 @@ def detect_intent(text: str) -> Intent:
         return Intent.INTERNAL_PROMPT
     if any(pattern in normalized for pattern in COMPANY_OVERVIEW_PATTERNS):
         return Intent.COMPANY_OVERVIEW
+    if any(term in normalized for term in PRODUCT_TERMS):
+        return Intent.PRODUCTS
+    if any(term in normalized for term in BRAND_TERMS):
+        return Intent.BRANDS
+    if any(term in normalized for term in SERVICE_TERMS):
+        return Intent.SERVICES
     if any(term in normalized for term in DELIVERY_TERMS):
         return Intent.DELIVERY
     if any(term in normalized for term in PRICE_TERMS):

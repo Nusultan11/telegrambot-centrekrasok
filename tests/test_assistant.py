@@ -57,6 +57,9 @@ class CompanyAssistantTest(unittest.IsolatedAsyncioTestCase):
     async def test_router_detects_high_risk_intents(self) -> None:
         self.assertEqual(detect_intent("/start"), Intent.GREETING)
         self.assertEqual(detect_intent("что такое центр красок?"), Intent.COMPANY_OVERVIEW)
+        self.assertEqual(detect_intent("Какие товары у вас есть?"), Intent.PRODUCTS)
+        self.assertEqual(detect_intent("Какие бренды у вас есть?"), Intent.BRANDS)
+        self.assertEqual(detect_intent("Какие услуги вы предоставляете?"), Intent.SERVICES)
         self.assertEqual(detect_intent("Сколько стоит краска Dulux?"), Intent.PRICE)
         self.assertEqual(detect_intent("Есть ли Hammerite в наличии?"), Intent.STOCK)
         self.assertEqual(detect_intent("Есть ли доставка и самовывоз?"), Intent.DELIVERY)
@@ -83,7 +86,10 @@ class CompanyAssistantTest(unittest.IsolatedAsyncioTestCase):
             provider_name="test",
         )
 
-        answer = await assistant.answer(1, "Какие услуги предоставляет компания?")
+        answer = await assistant.answer(
+            1,
+            "Можно ли у вас подобрать цвет и сделать колеровку?",
+        )
 
         self.assertEqual(answer.text, "Ответ по компании")
         joined = "\n".join(message["content"] for message in provider.messages)
@@ -92,7 +98,7 @@ class CompanyAssistantTest(unittest.IsolatedAsyncioTestCase):
         self.assertIn("3-6 содержательных", joined)
         self.assertNotIn("Markdown", joined)
         self.assertIn("Контекст компании:", joined)
-        self.assertIn("Услуги", joined)
+        self.assertIn("колеровка", joined.lower())
 
     async def test_memory_keeps_dialog_context(self) -> None:
         provider = RecordingProvider()
@@ -330,6 +336,69 @@ class CompanyAssistantTest(unittest.IsolatedAsyncioTestCase):
         self.assertIn("самовывоз", answer.text.lower())
         self.assertIn("нашего менеджера", answer.text)
         self.assertNotIn("не могу подтвердить актуальное наличие", answer.text.lower())
+        self.assertEqual(provider.messages, [])
+
+    async def test_products_question_returns_stable_faq_answer(self) -> None:
+        provider = RecordingProvider()
+        assistant = CompanyAssistant(
+            knowledge_base=KnowledgeBase.from_markdown(
+                ROOT / "data" / "company_profile.md"
+            ),
+            provider=provider,
+            memory=DialogMemory(max_messages=4),
+            top_k_chunks=3,
+            provider_name="test",
+        )
+
+        answer = await assistant.answer(152, "Какие товары у вас есть?")
+
+        self.assertIn("интерьерные и фасадные краски", answer.text)
+        self.assertIn("грунтовки", answer.text)
+        self.assertIn("малярные инструменты", answer.text)
+        self.assertNotIn("акция", answer.text.lower())
+        self.assertNotIn("скидк", answer.text.lower())
+        self.assertNotIn("2025", answer.text)
+        self.assertEqual(provider.messages, [])
+
+    async def test_brands_question_returns_stable_faq_answer(self) -> None:
+        provider = RecordingProvider()
+        assistant = CompanyAssistant(
+            knowledge_base=KnowledgeBase.from_markdown(
+                ROOT / "data" / "company_profile.md"
+            ),
+            provider=provider,
+            memory=DialogMemory(max_messages=4),
+            top_k_chunks=3,
+            provider_name="test",
+        )
+
+        answer = await assistant.answer(153, "Какие бренды у вас есть?")
+
+        self.assertIn("Dulux", answer.text)
+        self.assertIn("Hammerite", answer.text)
+        self.assertIn("Wagner", answer.text)
+        self.assertNotIn("акция", answer.text.lower())
+        self.assertNotIn("скидк", answer.text.lower())
+        self.assertNotIn("2025", answer.text)
+        self.assertEqual(provider.messages, [])
+
+    async def test_services_question_returns_stable_faq_answer(self) -> None:
+        provider = RecordingProvider()
+        assistant = CompanyAssistant(
+            knowledge_base=KnowledgeBase.from_markdown(
+                ROOT / "data" / "company_profile.md"
+            ),
+            provider=provider,
+            memory=DialogMemory(max_messages=4),
+            top_k_chunks=3,
+            provider_name="test",
+        )
+
+        answer = await assistant.answer(154, "Какие услуги вы предоставляете?")
+
+        self.assertIn("подбором материалов", answer.text)
+        self.assertIn("колеровкой", answer.text)
+        self.assertIn("Наши специалисты", answer.text)
         self.assertEqual(provider.messages, [])
 
     async def test_prompt_injection_is_refused(self) -> None:

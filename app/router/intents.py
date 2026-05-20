@@ -6,6 +6,9 @@ from enum import Enum
 class Intent(str, Enum):
     GREETING = "greeting"
     COMPANY_OVERVIEW = "company_overview"
+    PRODUCTS = "products"
+    BRANDS = "brands"
+    SERVICES = "services"
     DELIVERY = "delivery"
     PRICE = "price"
     STOCK = "stock"

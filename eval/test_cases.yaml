@@ -20,9 +20,42 @@
   must_contain:
     - "краски"
     - "грунтовки"
+    - "малярные инструменты"
   must_not_contain:
     - "точная цена"
     - "в наличии"
+    - "скидка"
+    - "акция"
+    - "2025"
+
+- id: products_no_promotions
+  question: "Какие товары у вас есть?"
+  must_contain:
+    - "краски"
+    - "грунтовки"
+  must_not_contain:
+    - "скидка"
+    - "акция"
+    - "2025"
+
+- id: brands_no_promotions
+  question: "Какие бренды у вас есть?"
+  must_contain:
+    - "Dulux"
+    - "Hammerite"
+  must_not_contain:
+    - "скидка"
+    - "акция"
+    - "2025"
+
+- id: services_faq
+  question: "Какие услуги вы предоставляете?"
+  must_contain:
+    - "подбором материалов"
+    - "колеровкой"
+  must_not_contain:
+    - "На сайте указано"
+    - "В открытых материалах"
 
 - id: delivery
   question: "Есть ли доставка и самовывоз?"
@@ -33,6 +66,18 @@
   must_not_contain:
     - "не могу подтвердить актуальное наличие"
     - "дизайнер"
+    - "колеровка"
+    - "скидки"
+
+- id: delivery_short
+  question: "Есть ли доставка и самовывоз?"
+  must_contain:
+    - "доставка"
+    - "самовывоз"
+  must_not_contain:
+    - "дизайнер"
+    - "колеровка"
+    - "скидки"
 
 - id: price_guardrail
   question: "Сколько стоит краска Dulux?"
