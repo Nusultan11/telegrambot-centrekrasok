@@ -72,6 +72,7 @@
 ```text
 data/
   company_profile.md      база знаний о компании
+  sources.md              список источников и ограничений данных
 
 docs/
   research.md             источники и краткая сводка исследования
@@ -119,6 +120,7 @@ tests/
 ## Ограничения MVP
 
 - База знаний подготовлена вручную из открытых источников.
+- Основная RAG-база лежит в `data/company_profile.md`; список использованных источников и ограничений данных лежит в `data/sources.md`.
 - Наличие товаров, цены, акции и сроки доставки не проверяются в реальном
   времени.
 - Бот не оформляет заказы и не подключен к CRM.
@@ -208,14 +210,16 @@ BotFather или панель провайдера API.
 
 ## Источники
 
-Сводка исследования лежит в `docs/research.md`. Основные источники:
+Основная база знаний для RAG лежит в `data/company_profile.md`. Список источников и ограничений данных вынесен в `data/sources.md`. Сводка исследования лежит в `docs/research.md`.
+
+Основные источники:
 
 - https://centr-krasok.kz/
 - https://centr-krasok.kz/about/
 - https://centr-krasok.kz/about/contacts/
 - https://centr-krasok.kz/about/delivery/
 - https://centr-krasok.kz/designers/
-- https://centr-krasok.kz/for_builders_company/
+- https://centr-krasok.kz/for_builders/
 - https://centr-krasok.kz/brands/
 - https://habr.com/ru/companies/amvera/articles/948000/
 
