@@ -53,6 +53,11 @@ CLIENTS_TERMS = (
     "партнеры",
 )
 
+INTERNAL_KNOWLEDGE_MARKERS = {
+    "Known facts:",
+    "Answering rules:",
+}
+
 CLIENTS_FALLBACK_ANSWER = """
 Компания "Центр Красок #1" работает с широким кругом клиентов, включая:
 
@@ -156,11 +161,15 @@ class CompanyAssistant:
         for chunk in chunks[:2]:
             for raw_line in chunk.text.splitlines():
                 line = raw_line.strip(" -")
+                if line == "Answering rules:":
+                    break
                 if (
                     not line
+                    or line in INTERNAL_KNOWLEDGE_MARKERS
                     or line.startswith("#")
                     or line.startswith("Дата подготовки")
                     or line.startswith("Основные источники")
+                    or line.startswith("Назначение файла")
                 ):
                     continue
                 lines.append(line)
