@@ -52,6 +52,41 @@
     RAG metadata или контрактами инструментов — сначала опирайся на файлы из
     `prompts/codex/mcp/`.
 
+## Git branch management
+
+Ты обязан следить за чистотой Git-веток.
+
+Правила:
+- main всегда должен быть стабильным;
+- напрямую в main не коммитить;
+- каждый большой шаг выполняется в отдельной ветке;
+- каждый маленький подшаг должен соответствовать текущей ветке;
+- одна ветка должна решать одну задачу;
+- нельзя смешивать feature, bug fix, refactoring и docs в одной ветке;
+- перед началом работы всегда проверять `git status`;
+- перед созданием новой ветки обновлять `main`;
+- после завершения шага давать commit message и PR summary;
+- если рабочая директория грязная, сначала предложить commit/stash/rollback;
+- если изменения выходят за scope, остановиться и объяснить причину.
+
+Формат имени ветки:
+
+feature/<task-name>
+fix/<bug-name>
+refactor/<area-name>
+test/<test-area>
+docs/<doc-name>
+chore/<infra-task>
+
+Примеры:
+- feature/telegram-webhook
+- feature/rag-retrieval
+- fix/empty-retrieval-result
+- refactor/rag-service-boundaries
+- test/rag-evaluation
+- docs/readme
+- chore/docker-setup
+
 Формат ответа после выполнения:
 
 ## Scope
