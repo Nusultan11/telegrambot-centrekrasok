@@ -6,6 +6,7 @@ import unittest
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
+from app.rag import KnowledgeBase as RagKnowledgeBase  # noqa: E402
 from company_bot.knowledge import KnowledgeBase, tokenize  # noqa: E402
 
 
@@ -16,6 +17,9 @@ class KnowledgeBaseTest(unittest.TestCase):
 
     def test_tokenize_supports_russian_text(self) -> None:
         self.assertIn("алматы", tokenize("Где офис в Алматы?"))
+
+    def test_app_rag_import_is_available(self) -> None:
+        self.assertIs(RagKnowledgeBase, KnowledgeBase)
 
     def test_search_contacts(self) -> None:
         chunks = self.kb.search("где находится офис и какой телефон", top_k=3)
