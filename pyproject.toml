@@ -1,0 +1,21 @@
+[project]
+name = "center-krasok-ai-telegram-bot"
+version = "0.1.0"
+description = "Telegram AI assistant for Center Krasok company questions"
+requires-python = ">=3.10"
+dependencies = [
+    "aiogram>=3.15,<4",
+    "aiohttp>=3.9,<4",
+    "openai>=1.58,<2",
+    "python-dotenv>=1.0,<2",
+]
+
+[build-system]
+requires = ["setuptools>=69"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
