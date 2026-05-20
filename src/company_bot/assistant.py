@@ -99,6 +99,31 @@ OUT_OF_SCOPE_ANSWER = (
     "сотрудничестве."
 )
 
+CURRENT_DATA_ANSWERS = (
+    (
+        ("акци", "скидк", "спецпредлож"),
+        "Сейчас не могу подтвердить актуальные акции или специальные предложения. "
+        "Они могут меняться, поэтому лучше уточнить действующие условия у менеджера "
+        "или на сайте Центра Красок #1.",
+    ),
+    (
+        ("цен", "стоим", "сколько стоит"),
+        "Не могу назвать точную актуальную цену без проверки. Цены могут меняться, "
+        "поэтому лучше уточнить стоимость конкретного товара у менеджера или на сайте "
+        "Центра Красок #1.",
+    ),
+    (
+        ("налич", "есть ли", "в наличии"),
+        "Не могу подтвердить актуальное наличие товара без проверки. Остатки могут "
+        "меняться, поэтому лучше уточнить наличие у менеджера Центра Красок #1.",
+    ),
+    (
+        ("ваканс", "зарплат"),
+        "В открытых данных нет подтвержденного списка актуальных вакансий или зарплат. "
+        "Лучше уточнить этот вопрос по основному телефону или email Центра Красок #1.",
+    ),
+)
+
 CLIENTS_FALLBACK_ANSWER = """
 Компания "Центр Красок #1" работает с широким кругом клиентов, включая:
 
@@ -148,6 +173,15 @@ class CompanyAssistant:
             self._memory.add(chat_id, "assistant", OUT_OF_SCOPE_ANSWER)
             return AssistantAnswer(
                 text=OUT_OF_SCOPE_ANSWER,
+                used_chunks=[],
+                used_provider=self._provider_name,
+            )
+
+        if current_data_answer := get_current_data_answer(cleaned_text):
+            self._memory.add(chat_id, "user", cleaned_text)
+            self._memory.add(chat_id, "assistant", current_data_answer)
+            return AssistantAnswer(
+                text=current_data_answer,
                 used_chunks=[],
                 used_provider=self._provider_name,
             )
@@ -209,6 +243,8 @@ class CompanyAssistant:
 
         lines: list[str] = []
         for chunk in chunks[:2]:
+            if chunk.title in {"14. Answering Restrictions", "15. Unknown Information"}:
+                continue
             for raw_line in chunk.text.splitlines():
                 line = raw_line.strip(" -")
                 if line == "Answering rules:":
@@ -248,6 +284,14 @@ def is_out_of_scope_question(text: str, chunks: list[RetrievedChunk]) -> bool:
     if any(term in lowered for term in OUT_OF_SCOPE_TERMS):
         return True
     return not chunks
+
+
+def get_current_data_answer(text: str) -> str | None:
+    lowered = text.lower()
+    for terms, answer in CURRENT_DATA_ANSWERS:
+        if any(term in lowered for term in terms):
+            return answer
+    return None
 
 
 def _fallback_intro(user_text: str) -> str:

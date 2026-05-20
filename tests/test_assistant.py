@@ -156,6 +156,26 @@ class CompanyAssistantTest(unittest.IsolatedAsyncioTestCase):
         self.assertIn("Я не смогу помочь с этим вопросом", answer.text)
         self.assertEqual(provider.messages, [])
 
+    async def test_promotions_question_returns_safe_no_answer(self) -> None:
+        provider = RecordingProvider()
+        assistant = CompanyAssistant(
+            knowledge_base=KnowledgeBase.from_markdown(
+                ROOT / "data" / "company_profile.md"
+            ),
+            provider=provider,
+            memory=DialogMemory(max_messages=4),
+            top_k_chunks=3,
+            provider_name="test",
+        )
+
+        answer = await assistant.answer(9, "какие акции у вас имеются?")
+
+        self.assertIn("не могу подтвердить актуальные акции", answer.text.lower())
+        self.assertIn("Центра Красок #1", answer.text)
+        self.assertNotIn("RAG chunks", answer.text)
+        self.assertNotIn("Бот должен отвечать", answer.text)
+        self.assertEqual(provider.messages, [])
+
 
 if __name__ == "__main__":
     unittest.main()
