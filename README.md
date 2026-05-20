@@ -75,17 +75,24 @@ data/
   sources.md              список источников и ограничений данных
 
 docs/
+  demo.md                 сценарий ручной проверки бота
   research.md             источники и краткая сводка исследования
+
+app/
+  core/                   настройки приложения
+  llm/                    интерфейс и провайдеры AI API
+  rag/                    Markdown retrieval по базе знаний
+  prompts/                system prompt и guardrails ассистента
 
 scripts/
   run_bot.ps1             запуск бота в фоне на Windows
 
 src/company_bot/
-  config.py               настройки из .env
-  knowledge.py            retrieval по базе знаний
+  config.py               compatibility layer для настроек
+  knowledge.py            compatibility layer для RAG retrieval
+  providers.py            compatibility layer для AI providers
   memory.py               короткая память диалога
-  assistant.py            сборка контекста, prompt и fallback-логика
-  providers.py            AI API: Gemini/OpenAI-compatible, Amvera, offline fallback
+  assistant.py            orchestration: retrieval, prompt, LLM call, fallback
   bot.py                  Telegram handlers на aiogram
   __main__.py             точка входа приложения
 
@@ -99,12 +106,28 @@ tests/
 
 | Модуль | Ответственность |
 | --- | --- |
-| `knowledge.py` | Делит базу знаний на разделы и ищет релевантные фрагменты по вопросу. |
-| `assistant.py` | Собирает prompt, добавляет контекст, вызывает AI и хранит историю диалога. |
-| `providers.py` | Изолирует работу с внешними AI API и fallback-режимом. |
-| `memory.py` | Хранит последние сообщения пользователя и ассистента в рамках чата. |
-| `bot.py` | Принимает Telegram-сообщения и отправляет ответы пользователю. |
-| `config.py` | Загружает токены, модели и параметры из `.env`. |
+| `app/core/config.py` | Загружает токены, модели и параметры из `.env`. |
+| `app/llm/` | Изолирует работу с OpenAI-compatible API, Gemini endpoint, Amvera и offline fallback. |
+| `app/rag/` | Делит Markdown-базу на chunks и ищет релевантные фрагменты по вопросу. |
+| `app/prompts/` | Хранит system prompt и guardrails против галлюцинаций. |
+| `src/company_bot/assistant.py` | Оркестрирует retrieval, prompt, LLM call, память диалога и fallback. |
+| `src/company_bot/memory.py` | Хранит последние сообщения пользователя и ассистента в рамках чата. |
+| `src/company_bot/bot.py` | Принимает Telegram-сообщения и отправляет ответы пользователю. |
+
+## Test Assignment Coverage
+
+| Requirement | Implementation |
+| --- | --- |
+| Telegram bot | Implemented with aiogram polling. |
+| Works without commands | Handles regular text messages. |
+| AI API | Uses OpenAI-compatible provider and supports Gemini endpoint. |
+| RAG knowledge base | Uses `data/company_profile.md`. |
+| Sources | Documented in `data/sources.md`. |
+| Retrieval | `app/rag` retrieves relevant Markdown chunks. |
+| Guardrails | `app/prompts` contains assistant system prompt rules. |
+| Dialogue context | `src/company_bot/memory.py`. |
+| Fallback | Offline/fact fallback when AI provider fails. |
+| Tests | Unit tests cover retrieval, assistant behavior and Telegram formatting. |
 
 ## Возможности MVP
 
@@ -185,7 +208,7 @@ powershell -ExecutionPolicy Bypass -File scripts\run_bot.ps1
 ```powershell
 $env:PYTHONPATH="src"
 python -m unittest discover -s tests
-python -m compileall src tests
+python -m compileall app src tests
 ```
 
 ## Примеры Вопросов
