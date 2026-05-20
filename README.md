@@ -283,3 +283,40 @@ BotFather или панель провайдера API.
 - Добавить healthcheck endpoint.
 - Добавить автоматический сбор и обновление базы знаний.
 - Добавить расширенные тесты на качество ответов и сценарии отказа.
+
+## Deployment
+
+Telegram bot cannot work without a running process. For local development, run:
+
+```powershell
+python -m company_bot
+```
+
+For 24/7 operation, deploy the bot as a long-running worker on a platform such as Amvera, Render, Railway or VPS.
+
+The project includes a `Dockerfile`, so the worker command is:
+
+```bash
+python -m company_bot
+```
+
+Required environment variables:
+
+```env
+TELEGRAM_BOT_TOKEN=your_botfather_token
+AI_PROVIDER=openai
+OPENAI_API_KEY=your_ai_api_key
+OPENAI_BASE_URL=https://generativelanguage.googleapis.com/v1beta/openai/
+OPENAI_MODEL=gemini-2.5-flash-lite
+TOP_K_CHUNKS=3
+MAX_HISTORY_MESSAGES=6
+```
+
+Local Docker check:
+
+```powershell
+docker build -t centr-krasok-bot .
+docker run --env-file .env centr-krasok-bot
+```
+
+Do not commit `.env` or real API tokens to GitHub.
