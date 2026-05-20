@@ -20,6 +20,14 @@ PRICE_ANSWER = (
     "на сайте Центра Красок #1."
 )
 
+DELIVERY_ANSWER = (
+    "Да, у нас есть доставка до двери и самовывоз из шоурума. Доставка "
+    "выполняется по адресу, указанному при оформлении заказа. Если нужен другой "
+    "адрес, сообщите его нашему менеджеру после оформления.\n\n"
+    "Сроки, стоимость доставки и актуальное наличие товара лучше уточнить у "
+    "нашего менеджера, потому что эти данные могут меняться."
+)
+
 STOCK_ANSWER = (
     "Сейчас я не могу подтвердить актуальное наличие товара без проверки. "
     "Вы можете уточнить наличие у нашего менеджера Центра Красок #1."
@@ -69,6 +77,7 @@ CLIENTS_FALLBACK_ANSWER = """
 DETERMINISTIC_ANSWERS = {
     Intent.GREETING: GREETING_ANSWER,
     Intent.COMPANY_OVERVIEW: COMPANY_OVERVIEW_ANSWER,
+    Intent.DELIVERY: DELIVERY_ANSWER,
     Intent.PRICE: PRICE_ANSWER,
     Intent.STOCK: STOCK_ANSWER,
     Intent.PROMOTIONS: PROMOTIONS_ANSWER,

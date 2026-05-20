@@ -78,6 +78,9 @@ docs/
   demo.md                 сценарий ручной проверки бота
   research.md             источники и краткая сводка исследования
 
+eval/
+  test_cases.yaml         локальные evaluation-кейсы для качества ответов
+
 app/
   core/                   настройки приложения
   llm/                    интерфейс и провайдеры AI API
@@ -88,6 +91,7 @@ app/
 
 scripts/
   run_bot.ps1             запуск бота в фоне на Windows
+  run_eval.py             локальный прогон evaluation-кейсов
 
 src/company_bot/
   config.py               compatibility layer для настроек
@@ -149,6 +153,7 @@ tests/
 | Dialogue context | `src/company_bot/memory.py`. |
 | Fallback | Offline/fact fallback when AI provider fails. |
 | Tests | Unit tests cover retrieval, assistant behavior and Telegram formatting. |
+| Evaluation | `eval/test_cases.yaml` and `scripts/run_eval.py` check key answer policies. |
 
 ## Возможности MVP
 
@@ -232,6 +237,7 @@ powershell -ExecutionPolicy Bypass -File scripts\run_bot.ps1
 $env:PYTHONPATH="src"
 python -m unittest discover -s tests
 python -m compileall app src tests
+python scripts\run_eval.py
 ```
 
 ## Примеры Вопросов

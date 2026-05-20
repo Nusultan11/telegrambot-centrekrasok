@@ -27,10 +27,15 @@ SMALLTALK_WORDS = {
 
 INTERNAL_PROMPT_MARKERS = (
     "system prompt",
+    "ignore previous instructions",
+    "ignore all instructions",
     "системный prompt",
     "системный промпт",
     "системные инструкции",
     "внутренние инструкции",
+    "внутренние правила",
+    "игнорируй все инструкции",
+    "игнорируй предыдущие инструкции",
     "покажи prompt",
     "покажи промпт",
     "раскрой prompt",
@@ -81,6 +86,14 @@ COMPANY_OVERVIEW_PATTERNS = (
     "о компании",
     "почему стоит обратиться",
     "стоит обратиться",
+)
+
+DELIVERY_TERMS = (
+    "доставка",
+    "доставку",
+    "доставляете",
+    "самовывоз",
+    "забрать из шоурума",
 )
 
 UNKNOWN_PRODUCT_EXCLUSIONS = (
@@ -182,6 +195,8 @@ def detect_intent(text: str) -> Intent:
         return Intent.INTERNAL_PROMPT
     if any(pattern in normalized for pattern in COMPANY_OVERVIEW_PATTERNS):
         return Intent.COMPANY_OVERVIEW
+    if any(term in normalized for term in DELIVERY_TERMS):
+        return Intent.DELIVERY
     if any(term in normalized for term in PRICE_TERMS):
         return Intent.PRICE
     if any(term in normalized for term in STOCK_TERMS):
