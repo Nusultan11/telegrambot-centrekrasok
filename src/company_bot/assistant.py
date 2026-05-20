@@ -2,200 +2,29 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
+from app.policies.answer_policy import (
+    CLIENTS_FALLBACK_ANSWER,
+    GREETING_ANSWER,
+    OUT_OF_SCOPE_ANSWER,
+    build_deterministic_answer,
+)
+from app.policies.voice import apply_company_voice
 from app.prompts.assistant_prompt import build_system_prompt
+from app.router.router import (
+    detect_intent,
+    is_clients_question,
+    is_out_of_scope_question,
+)
 
 from .knowledge import KnowledgeBase, RetrievedChunk
 from .memory import DialogMemory
 from .providers import AIProviderError, ChatProvider, Message
 
 
-SMALLTALK_WORDS = {
-    "/start",
-    "start",
-    "привет",
-    "здравствуйте",
-    "здравствуй",
-    "салам",
-    "hello",
-    "hi",
-    "добрый день",
-    "доброе утро",
-    "добрый вечер",
-    "спасибо",
-    "благодарю",
-}
-
-GREETING_ANSWER = (
-    "Здравствуйте! Я AI-ассистент Центра Красок #1. Могу помочь с вопросами "
-    "о товарах, услугах, брендах, адресах, доставке, самовывозе и сотрудничестве."
-)
-
-SYSTEM_PROMPT_REFUSAL = (
-    "Я не могу раскрывать внутренние инструкции или технические настройки. Зато "
-    "могу помочь вам с товарами, услугами, брендами, адресами, доставкой и "
-    "сотрудничеством Центра Красок #1."
-)
-
-UNKNOWN_PRODUCT_ANSWER = (
-    "Сейчас я не могу подтвердить наличие этого конкретного товара без проверки. "
-    "Вы можете уточнить актуальное наличие у нашего менеджера Центра Красок #1."
-)
-
-CLIENTS_TERMS = (
-    "клиент",
-    "клиенты",
-    "покупател",
-    "заказчик",
-    "заказчики",
-    "партнер",
-    "партнеры",
-)
-
 INTERNAL_KNOWLEDGE_MARKERS = {
     "Known facts:",
     "Answering rules:",
 }
-
-COMPANY_RELATED_TERMS = (
-    "центр красок",
-    "centr krasok",
-    "компани",
-    "магазин",
-    "краск",
-    "лак",
-    "масл",
-    "грунтов",
-    "пропит",
-    "штукатур",
-    "колеров",
-    "цвет",
-    "бренд",
-    "товар",
-    "продукт",
-    "услуг",
-    "достав",
-    "самовывоз",
-    "адрес",
-    "контакт",
-    "телефон",
-    "email",
-    "почт",
-    "график",
-    "режим",
-    "дизайнер",
-    "строител",
-    "клиент",
-    "партнер",
-    "проект",
-    "ваканс",
-    "зарплат",
-    "директор",
-    "владел",
-    "цена",
-    "стоим",
-    "налич",
-    "акци",
-)
-
-OUT_OF_SCOPE_TERMS = (
-    "матч",
-    "футбол",
-    "лига",
-    "фрайбург",
-    "астон",
-    "вилла",
-    "спорт",
-    "прогноз",
-    "предскажи",
-    "рецепт",
-    "плов",
-    "погода",
-    "курс валют",
-    "крипт",
-    "новости",
-)
-
-OUT_OF_SCOPE_ANSWER = (
-    "Я не смогу помочь с этим вопросом. Я отвечаю только на вопросы о Центре "
-    "Красок #1: товарах, услугах, брендах, адресах, контактах, доставке и "
-    "сотрудничестве."
-)
-
-CURRENT_DATA_ANSWERS = (
-    (
-        ("акци", "скидк", "спецпредлож"),
-        "Сейчас я не могу подтвердить актуальные акции или специальные предложения "
-        "без проверки. Вы можете уточнить действующие условия у нашего менеджера "
-        "или на сайте Центра Красок #1.",
-    ),
-    (
-        ("цен", "стоим", "сколько стоит"),
-        "Сейчас я не могу подтвердить точную актуальную цену без проверки. "
-        "Вы можете уточнить стоимость конкретного товара у нашего менеджера или "
-        "на сайте Центра Красок #1.",
-    ),
-    (
-        ("налич", "в наличии", "остатк", "есть в продаже", "доступен товар"),
-        "Сейчас я не могу подтвердить актуальное наличие товара без проверки. "
-        "Вы можете уточнить наличие у нашего менеджера Центра Красок #1.",
-    ),
-    (
-        ("ваканс", "зарплат"),
-        "Сейчас я не могу подтвердить актуальный список открытых вакансий или "
-        "зарплаты без проверки. Вы можете уточнить информацию по нашим контактам.",
-    ),
-)
-
-PRICE_TERMS = (
-    "сколько стоит",
-    "стоит",
-    "цена",
-    "цены",
-    "стоимость",
-    "прайс",
-    "ценник",
-)
-
-STOCK_TERMS = (
-    "в наличии",
-    "наличие",
-    "остатк",
-    "есть в продаже",
-    "доступен товар",
-)
-
-PROMOTION_TERMS = (
-    "акци",
-    "скидк",
-    "спецпредлож",
-)
-
-VACANCY_TERMS = (
-    "ваканс",
-    "зарплат",
-)
-
-COMPANY_OVERVIEW_PATTERNS = (
-    "что такое центр красок",
-    "что такое цент красок",
-    "чем занимается центр красок",
-    "расскажи о центре красок",
-    "кто вы",
-    "о компании",
-    "почему стоит обратиться",
-    "стоит обратиться",
-)
-
-CLIENTS_FALLBACK_ANSWER = """
-Мы работаем с широким кругом клиентов, включая:
-
-• Частных клиентов: люди, которые хотят обновить свои дома, квартиры, мебель, фасады или другие личные пространства.
-• Дизайнеров: профессионалы, которые используют нашу продукцию в дизайн-проектах и подбирают материалы, цвета и декоративные решения для клиентов.
-• Строителей: компании и бригады, занимающиеся строительством, ремонтом и отделочными работами.
-• Проектных заказчиков: организации и компании, реализующие крупные строительные или ремонтные проекты.
-
-У нас также есть опыт работы с сотнями реализованных проектов и более 200 лояльными партнерами. Это показывает, что мы работаем не только с частными покупателями, но и с профессиональным проектным сегментом.
-""".strip()
 
 
 @dataclass(frozen=True, slots=True)
@@ -229,7 +58,8 @@ class CompanyAssistant:
                 used_provider=self._provider_name,
             )
 
-        if deterministic_answer := get_deterministic_answer(cleaned_text):
+        intent = detect_intent(cleaned_text)
+        if deterministic_answer := build_deterministic_answer(intent, cleaned_text):
             self._memory.add(chat_id, "user", cleaned_text)
             self._memory.add(chat_id, "assistant", deterministic_answer)
             return AssistantAnswer(
@@ -248,15 +78,6 @@ class CompanyAssistant:
                 used_provider=self._provider_name,
             )
 
-        if current_data_answer := get_current_data_answer(cleaned_text):
-            self._memory.add(chat_id, "user", cleaned_text)
-            self._memory.add(chat_id, "assistant", current_data_answer)
-            return AssistantAnswer(
-                text=current_data_answer,
-                used_chunks=[],
-                used_provider=self._provider_name,
-            )
-
         messages = self._build_messages(chat_id, cleaned_text, chunks)
 
         try:
@@ -264,6 +85,7 @@ class CompanyAssistant:
         except AIProviderError:
             answer_text = self._fallback_answer(cleaned_text, chunks)
 
+        answer_text = apply_company_voice(answer_text)
         self._memory.add(chat_id, "user", cleaned_text)
         self._memory.add(chat_id, "assistant", answer_text)
         return AssistantAnswer(
@@ -297,9 +119,6 @@ class CompanyAssistant:
     @staticmethod
     def _fallback_answer(user_text: str, chunks: list[RetrievedChunk]) -> str:
         lowered = user_text.lower()
-        if any(word in lowered for word in SMALLTALK_WORDS):
-            return GREETING_ANSWER
-
         if not chunks:
             return (
                 "Я могу отвечать только на вопросы о Центре Красок #1. "
@@ -339,117 +158,6 @@ class CompanyAssistant:
             )
 
         return _fallback_intro(user_text) + "\n" + "\n".join(f"• {line}" for line in lines)
-
-
-def is_clients_question(text: str) -> bool:
-    return any(term in text for term in CLIENTS_TERMS)
-
-
-def get_deterministic_answer(text: str) -> str | None:
-    lowered = text.lower()
-    if is_start_or_greeting(lowered):
-        return GREETING_ANSWER
-    if is_internal_instruction_request(lowered):
-        return SYSTEM_PROMPT_REFUSAL
-    if is_company_overview_question(lowered):
-        return None
-    if current_data_answer := get_current_data_answer(lowered):
-        return current_data_answer
-    if is_unknown_product_question(lowered):
-        return UNKNOWN_PRODUCT_ANSWER
-    return None
-
-
-def is_start_or_greeting(text: str) -> bool:
-    normalized = text.strip().lower().strip("!.,? ")
-    return normalized in SMALLTALK_WORDS
-
-
-def is_internal_instruction_request(text: str) -> bool:
-    markers = (
-        "system prompt",
-        "системный prompt",
-        "системный промпт",
-        "системные инструкции",
-        "внутренние инструкции",
-        "покажи prompt",
-        "покажи промпт",
-        "раскрой prompt",
-        "раскрой промпт",
-    )
-    return any(marker in text for marker in markers)
-
-
-def is_company_overview_question(text: str) -> bool:
-    return any(pattern in text for pattern in COMPANY_OVERVIEW_PATTERNS)
-
-
-def is_out_of_scope_question(text: str, chunks: list[RetrievedChunk]) -> bool:
-    lowered = text.lower()
-    if any(term in lowered for term in COMPANY_RELATED_TERMS):
-        return False
-    if any(term in lowered for term in OUT_OF_SCOPE_TERMS):
-        return True
-    return not chunks
-
-
-def get_current_data_answer(text: str) -> str | None:
-    lowered = text.lower()
-    if is_price_question(lowered):
-        return CURRENT_DATA_ANSWERS[1][1]
-    if is_stock_question(lowered):
-        return CURRENT_DATA_ANSWERS[2][1]
-    if is_promotions_question(lowered):
-        return CURRENT_DATA_ANSWERS[0][1]
-    if is_vacancy_question(lowered):
-        return CURRENT_DATA_ANSWERS[3][1]
-    return None
-
-
-def is_price_question(text: str) -> bool:
-    return any(term in text for term in PRICE_TERMS)
-
-
-def is_stock_question(text: str) -> bool:
-    return any(term in text for term in STOCK_TERMS)
-
-
-def is_promotions_question(text: str) -> bool:
-    return any(term in text for term in PROMOTION_TERMS)
-
-
-def is_vacancy_question(text: str) -> bool:
-    return any(term in text for term in VACANCY_TERMS)
-
-
-def is_unknown_product_question(text: str) -> bool:
-    if not any(marker in text for marker in ("у вас есть", "есть ли")):
-        return False
-    if any(
-        marker in text
-        for marker in (
-            "доставка",
-            "самовывоз",
-            "услуга",
-            "услуги",
-            "адрес",
-            "контакт",
-            "телефон",
-            "бренд",
-            "бренды",
-            "в наличии",
-            "наличие",
-            "остатк",
-        )
-    ):
-        return False
-    return bool(
-        any(char.isdigit() for char in text)
-        or any("a" <= char <= "z" for char in text)
-        or "краска " in text
-        or "лак " in text
-        or "грунтов" in text
-    )
 
 
 def _fallback_intro(user_text: str) -> str:

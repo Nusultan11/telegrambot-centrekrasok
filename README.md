@@ -83,6 +83,8 @@ app/
   llm/                    интерфейс и провайдеры AI API
   rag/                    Markdown retrieval по базе знаний
   prompts/                system prompt и guardrails ассистента
+  router/                 Query Router для определения типа вопроса
+  policies/               Answer Policy и Company Voice Policy
 
 scripts/
   run_bot.ps1             запуск бота в фоне на Windows
@@ -92,7 +94,7 @@ src/company_bot/
   knowledge.py            compatibility layer для RAG retrieval
   providers.py            compatibility layer для AI providers
   memory.py               короткая память диалога
-  assistant.py            orchestration: retrieval, prompt, LLM call, fallback
+  assistant.py            orchestration: router, retrieval, prompt, LLM call, fallback
   bot.py                  Telegram handlers на aiogram
   __main__.py             точка входа приложения
 
@@ -110,9 +112,28 @@ tests/
 | `app/llm/` | Изолирует работу с OpenAI-compatible API, Gemini endpoint, Amvera и offline fallback. |
 | `app/rag/` | Делит Markdown-базу на chunks, использует keyword scoring и лёгкое расширение запроса для частых формулировок: контакты, строители, цены, наличие. |
 | `app/prompts/` | Хранит system prompt и guardrails против галлюцинаций. |
-| `src/company_bot/assistant.py` | Оркестрирует retrieval, prompt, LLM call, память диалога и fallback. |
+| `app/router/` | Определяет intent сообщения: greeting, company overview, price, stock, promotions, vacancies, prompt safety, unknown product или general RAG. |
+| `app/policies/` | Возвращает deterministic guarded answers для рискованных intent и применяет company voice к LLM/fallback-ответам. |
+| `src/company_bot/assistant.py` | Оркестрирует Query Router, Answer Policy, retrieval, prompt, LLM call, память диалога и fallback. |
 | `src/company_bot/memory.py` | Хранит последние сообщения пользователя и ассистента в рамках чата. |
 | `src/company_bot/bot.py` | Принимает Telegram-сообщения и отправляет ответы пользователю. |
+
+## Hybrid RAG Pipeline
+
+Ассистент использует гибридную стратегию ответа:
+
+1. Нормализует сообщение пользователя.
+2. Определяет intent через Query Router.
+3. Для рискованных сценариев возвращает deterministic guarded answer:
+   приветствие, цены, наличие, акции, вакансии, внутренний prompt и неизвестный
+   конкретный товар.
+4. Для обычных вопросов о компании ищет релевантные Markdown chunks в локальной
+   базе знаний.
+5. Собирает LLM prompt из найденного контекста и guardrails.
+6. Применяет Company Voice Policy перед отправкой ответа в Telegram.
+
+Такой подход снижает галлюцинации, но сохраняет естественные AI-ответы для
+общих вопросов о компании.
 
 ## Test Assignment Coverage
 
