@@ -34,6 +34,71 @@ INTERNAL_KNOWLEDGE_MARKERS = {
     "Answering rules:",
 }
 
+COMPANY_RELATED_TERMS = (
+    "центр красок",
+    "centr krasok",
+    "компани",
+    "магазин",
+    "краск",
+    "лак",
+    "масл",
+    "грунтов",
+    "пропит",
+    "штукатур",
+    "колеров",
+    "цвет",
+    "бренд",
+    "товар",
+    "продукт",
+    "услуг",
+    "достав",
+    "самовывоз",
+    "адрес",
+    "контакт",
+    "телефон",
+    "email",
+    "почт",
+    "график",
+    "режим",
+    "дизайнер",
+    "строител",
+    "клиент",
+    "партнер",
+    "проект",
+    "ваканс",
+    "зарплат",
+    "директор",
+    "владел",
+    "цена",
+    "стоим",
+    "налич",
+    "акци",
+)
+
+OUT_OF_SCOPE_TERMS = (
+    "матч",
+    "футбол",
+    "лига",
+    "фрайбург",
+    "астон",
+    "вилла",
+    "спорт",
+    "прогноз",
+    "предскажи",
+    "рецепт",
+    "плов",
+    "погода",
+    "курс валют",
+    "крипт",
+    "новости",
+)
+
+OUT_OF_SCOPE_ANSWER = (
+    "Я не смогу помочь с этим вопросом. Я отвечаю только на вопросы о Центре "
+    "Красок #1: товарах, услугах, брендах, адресах, контактах, доставке и "
+    "сотрудничестве."
+)
+
 CLIENTS_FALLBACK_ANSWER = """
 Компания "Центр Красок #1" работает с широким кругом клиентов, включая:
 
@@ -78,6 +143,15 @@ class CompanyAssistant:
             )
 
         chunks = self._knowledge_base.search(cleaned_text, top_k=self._top_k_chunks)
+        if is_out_of_scope_question(cleaned_text, chunks):
+            self._memory.add(chat_id, "user", cleaned_text)
+            self._memory.add(chat_id, "assistant", OUT_OF_SCOPE_ANSWER)
+            return AssistantAnswer(
+                text=OUT_OF_SCOPE_ANSWER,
+                used_chunks=[],
+                used_provider=self._provider_name,
+            )
+
         messages = self._build_messages(chat_id, cleaned_text, chunks)
 
         try:
@@ -160,8 +234,30 @@ class CompanyAssistant:
                 "ответ. Лучше уточнить вопрос или связаться с менеджером компании."
             )
 
-        return "По данным компании:\n" + "\n".join(f"- {line}" for line in lines)
+        return _fallback_intro(user_text) + "\n" + "\n".join(f"• {line}" for line in lines)
 
 
 def is_clients_question(text: str) -> bool:
     return any(term in text for term in CLIENTS_TERMS)
+
+
+def is_out_of_scope_question(text: str, chunks: list[RetrievedChunk]) -> bool:
+    lowered = text.lower()
+    if any(term in lowered for term in COMPANY_RELATED_TERMS):
+        return False
+    if any(term in lowered for term in OUT_OF_SCOPE_TERMS):
+        return True
+    return not chunks
+
+
+def _fallback_intro(user_text: str) -> str:
+    lowered = user_text.lower()
+    if "достав" in lowered:
+        return "Доставка работает так:"
+    if "услуг" in lowered:
+        return "Мы предлагаем:"
+    if "бренд" in lowered:
+        return "У нас представлены такие данные по брендам:"
+    if "адрес" in lowered or "контакт" in lowered or "телефон" in lowered:
+        return "Связаться с нами можно так:"
+    return "Вот основная информация:"

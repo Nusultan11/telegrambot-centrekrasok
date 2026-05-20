@@ -118,6 +118,44 @@ class CompanyAssistantTest(unittest.IsolatedAsyncioTestCase):
         self.assertNotIn("Answering rules", answer.text)
         self.assertNotIn("Нельзя утверждать", answer.text)
 
+    async def test_fallback_uses_company_voice(self) -> None:
+        assistant = CompanyAssistant(
+            knowledge_base=KnowledgeBase.from_markdown(
+                ROOT / "data" / "company_profile.md"
+            ),
+            provider=FailingProvider(),
+            memory=DialogMemory(max_messages=4),
+            top_k_chunks=3,
+            provider_name="test",
+        )
+
+        answer = await assistant.answer(7, "Как работает доставка?")
+
+        self.assertIn("Доставка работает так:", answer.text)
+        self.assertNotIn("По данным компании", answer.text)
+        self.assertNotIn("Known facts", answer.text)
+        self.assertNotIn("Answering rules", answer.text)
+
+    async def test_out_of_scope_question_does_not_call_provider(self) -> None:
+        provider = RecordingProvider()
+        assistant = CompanyAssistant(
+            knowledge_base=KnowledgeBase.from_markdown(
+                ROOT / "data" / "company_profile.md"
+            ),
+            provider=provider,
+            memory=DialogMemory(max_messages=4),
+            top_k_chunks=3,
+            provider_name="test",
+        )
+
+        answer = await assistant.answer(
+            8,
+            "предскажи, как закончится матч Фрайбург-Астон Вилла финала Лиги Европы",
+        )
+
+        self.assertIn("Я не смогу помочь с этим вопросом", answer.text)
+        self.assertEqual(provider.messages, [])
+
 
 if __name__ == "__main__":
     unittest.main()
