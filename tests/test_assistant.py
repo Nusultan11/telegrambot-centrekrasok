@@ -301,6 +301,25 @@ class CompanyAssistantTest(unittest.IsolatedAsyncioTestCase):
         self.assertIn("актуальное наличие", answer.text.lower())
         self.assertEqual(provider.messages, [])
 
+    async def test_company_overview_question_is_not_price_fallback(self) -> None:
+        provider = RecordingProvider()
+        assistant = CompanyAssistant(
+            knowledge_base=KnowledgeBase.from_markdown(
+                ROOT / "data" / "company_profile.md"
+            ),
+            provider=provider,
+            memory=DialogMemory(max_messages=4),
+            top_k_chunks=3,
+            provider_name="test",
+        )
+
+        answer = await assistant.answer(17, "что такое центр красок?")
+
+        self.assertEqual(answer.text, "Ответ по компании")
+        self.assertNotIn("цен", answer.text.lower())
+        self.assertNotIn("стоимость", answer.text.lower())
+        self.assertNotEqual(provider.messages, [])
+
 
 if __name__ == "__main__":
     unittest.main()

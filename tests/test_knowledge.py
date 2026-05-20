@@ -49,6 +49,16 @@ class KnowledgeBaseTest(unittest.TestCase):
             )
         )
 
+    def test_retrieves_company_overview_for_what_is_company_question(self) -> None:
+        chunks = self.kb.search("что такое центр красок?", top_k=3)
+        titles = [chunk.title for chunk in chunks]
+        self.assertTrue(
+            any(
+                "Business Scope" in title or "Company Overview" in title
+                for title in titles
+            )
+        )
+
     def test_retrieves_products_for_products_question(self) -> None:
         chunks = self.kb.search("Какие товары у вас есть?", top_k=3)
         titles = [chunk.title for chunk in chunks]

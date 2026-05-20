@@ -146,6 +146,46 @@ CURRENT_DATA_ANSWERS = (
     ),
 )
 
+PRICE_TERMS = (
+    "сколько стоит",
+    "стоит",
+    "цена",
+    "цены",
+    "стоимость",
+    "прайс",
+    "ценник",
+)
+
+STOCK_TERMS = (
+    "в наличии",
+    "наличие",
+    "остатк",
+    "есть в продаже",
+    "доступен товар",
+)
+
+PROMOTION_TERMS = (
+    "акци",
+    "скидк",
+    "спецпредлож",
+)
+
+VACANCY_TERMS = (
+    "ваканс",
+    "зарплат",
+)
+
+COMPANY_OVERVIEW_PATTERNS = (
+    "что такое центр красок",
+    "что такое цент красок",
+    "чем занимается центр красок",
+    "расскажи о центре красок",
+    "кто вы",
+    "о компании",
+    "почему стоит обратиться",
+    "стоит обратиться",
+)
+
 CLIENTS_FALLBACK_ANSWER = """
 Компания "Центр Красок #1" работает с широким кругом клиентов, включая:
 
@@ -311,6 +351,8 @@ def get_deterministic_answer(text: str) -> str | None:
         return GREETING_ANSWER
     if is_internal_instruction_request(lowered):
         return SYSTEM_PROMPT_REFUSAL
+    if is_company_overview_question(lowered):
+        return None
     if current_data_answer := get_current_data_answer(lowered):
         return current_data_answer
     if is_unknown_product_question(lowered):
@@ -338,6 +380,10 @@ def is_internal_instruction_request(text: str) -> bool:
     return any(marker in text for marker in markers)
 
 
+def is_company_overview_question(text: str) -> bool:
+    return any(pattern in text for pattern in COMPANY_OVERVIEW_PATTERNS)
+
+
 def is_out_of_scope_question(text: str, chunks: list[RetrievedChunk]) -> bool:
     lowered = text.lower()
     if any(term in lowered for term in COMPANY_RELATED_TERMS):
@@ -349,10 +395,31 @@ def is_out_of_scope_question(text: str, chunks: list[RetrievedChunk]) -> bool:
 
 def get_current_data_answer(text: str) -> str | None:
     lowered = text.lower()
-    for terms, answer in CURRENT_DATA_ANSWERS:
-        if any(term in lowered for term in terms):
-            return answer
+    if is_price_question(lowered):
+        return CURRENT_DATA_ANSWERS[1][1]
+    if is_stock_question(lowered):
+        return CURRENT_DATA_ANSWERS[2][1]
+    if is_promotions_question(lowered):
+        return CURRENT_DATA_ANSWERS[0][1]
+    if is_vacancy_question(lowered):
+        return CURRENT_DATA_ANSWERS[3][1]
     return None
+
+
+def is_price_question(text: str) -> bool:
+    return any(term in text for term in PRICE_TERMS)
+
+
+def is_stock_question(text: str) -> bool:
+    return any(term in text for term in STOCK_TERMS)
+
+
+def is_promotions_question(text: str) -> bool:
+    return any(term in text for term in PROMOTION_TERMS)
+
+
+def is_vacancy_question(text: str) -> bool:
+    return any(term in text for term in VACANCY_TERMS)
 
 
 def is_unknown_product_question(text: str) -> bool:
