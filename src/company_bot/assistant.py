@@ -10,14 +10,36 @@ from .providers import AIProviderError, ChatProvider, Message
 
 
 SMALLTALK_WORDS = {
+    "/start",
+    "start",
     "привет",
     "здравствуйте",
+    "здравствуй",
     "салам",
     "hello",
     "hi",
+    "добрый день",
+    "доброе утро",
+    "добрый вечер",
     "спасибо",
     "благодарю",
 }
+
+GREETING_ANSWER = (
+    "Здравствуйте! Я AI-ассистент Центра Красок #1. Могу помочь с вопросами "
+    "о товарах, услугах, брендах, адресах, доставке, самовывозе и сотрудничестве."
+)
+
+SYSTEM_PROMPT_REFUSAL = (
+    "Я не могу раскрывать внутренние инструкции, system prompt или технический "
+    "контекст. Зато могу помочь с вопросами о Центре Красок #1: товарах, услугах, "
+    "брендах, адресах, доставке и сотрудничестве."
+)
+
+UNKNOWN_PRODUCT_ANSWER = (
+    "В базе знаний нет подтвержденной информации о наличии этого конкретного "
+    "товара. Лучше уточнить актуальное наличие у менеджера Центра Красок #1."
+)
 
 CLIENTS_TERMS = (
     "клиент",
@@ -113,7 +135,7 @@ CURRENT_DATA_ANSWERS = (
         "Центра Красок #1.",
     ),
     (
-        ("налич", "есть ли", "в наличии"),
+        ("налич", "в наличии", "остатк", "есть в продаже", "доступен товар"),
         "Не могу подтвердить актуальное наличие товара без проверки. Остатки могут "
         "меняться, поэтому лучше уточнить наличие у менеджера Центра Красок #1.",
     ),
@@ -165,6 +187,15 @@ class CompanyAssistant:
                 text="Напишите вопрос о Центре Красок #1, и я отвечу по данным компании.",
                 used_chunks=[],
                 used_provider=self._provider_name,
+            )
+
+        if deterministic_answer := get_deterministic_answer(cleaned_text):
+            self._memory.add(chat_id, "user", cleaned_text)
+            self._memory.add(chat_id, "assistant", deterministic_answer)
+            return AssistantAnswer(
+                text=deterministic_answer,
+                used_chunks=[],
+                used_provider="local",
             )
 
         chunks = self._knowledge_base.search(cleaned_text, top_k=self._top_k_chunks)
@@ -227,10 +258,7 @@ class CompanyAssistant:
     def _fallback_answer(user_text: str, chunks: list[RetrievedChunk]) -> str:
         lowered = user_text.lower()
         if any(word in lowered for word in SMALLTALK_WORDS):
-            return (
-                "Здравствуйте. Я помогу с вопросами о Центре Красок #1: товарах, "
-                "услугах, адресах, брендах, доставке и сотрудничестве."
-            )
+            return GREETING_ANSWER
 
         if not chunks:
             return (
@@ -277,6 +305,39 @@ def is_clients_question(text: str) -> bool:
     return any(term in text for term in CLIENTS_TERMS)
 
 
+def get_deterministic_answer(text: str) -> str | None:
+    lowered = text.lower()
+    if is_start_or_greeting(lowered):
+        return GREETING_ANSWER
+    if is_internal_instruction_request(lowered):
+        return SYSTEM_PROMPT_REFUSAL
+    if current_data_answer := get_current_data_answer(lowered):
+        return current_data_answer
+    if is_unknown_product_question(lowered):
+        return UNKNOWN_PRODUCT_ANSWER
+    return None
+
+
+def is_start_or_greeting(text: str) -> bool:
+    normalized = text.strip().lower().strip("!.,? ")
+    return normalized in SMALLTALK_WORDS
+
+
+def is_internal_instruction_request(text: str) -> bool:
+    markers = (
+        "system prompt",
+        "системный prompt",
+        "системный промпт",
+        "системные инструкции",
+        "внутренние инструкции",
+        "покажи prompt",
+        "покажи промпт",
+        "раскрой prompt",
+        "раскрой промпт",
+    )
+    return any(marker in text for marker in markers)
+
+
 def is_out_of_scope_question(text: str, chunks: list[RetrievedChunk]) -> bool:
     lowered = text.lower()
     if any(term in lowered for term in COMPANY_RELATED_TERMS):
@@ -292,6 +353,36 @@ def get_current_data_answer(text: str) -> str | None:
         if any(term in lowered for term in terms):
             return answer
     return None
+
+
+def is_unknown_product_question(text: str) -> bool:
+    if not any(marker in text for marker in ("у вас есть", "есть ли")):
+        return False
+    if any(
+        marker in text
+        for marker in (
+            "доставка",
+            "самовывоз",
+            "услуга",
+            "услуги",
+            "адрес",
+            "контакт",
+            "телефон",
+            "бренд",
+            "бренды",
+            "в наличии",
+            "наличие",
+            "остатк",
+        )
+    ):
+        return False
+    return bool(
+        any(char.isdigit() for char in text)
+        or any("a" <= char <= "z" for char in text)
+        or "краска " in text
+        or "лак " in text
+        or "грунтов" in text
+    )
 
 
 def _fallback_intro(user_text: str) -> str:

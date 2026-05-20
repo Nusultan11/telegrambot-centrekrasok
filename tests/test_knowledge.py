@@ -39,6 +39,46 @@ class KnowledgeBaseTest(unittest.TestCase):
             any("Builders And Contractors" in title for title in titles)
         )
 
+    def test_retrieves_company_overview_for_business_question(self) -> None:
+        chunks = self.kb.search("Чем занимается Центр Красок?", top_k=3)
+        titles = [chunk.title for chunk in chunks]
+        self.assertTrue(
+            any(
+                "Business Scope" in title or "Company Overview" in title
+                for title in titles
+            )
+        )
+
+    def test_retrieves_products_for_products_question(self) -> None:
+        chunks = self.kb.search("Какие товары у вас есть?", top_k=3)
+        titles = [chunk.title for chunk in chunks]
+        self.assertTrue(any("Products" in title for title in titles))
+
+    def test_retrieves_brands_for_brands_question(self) -> None:
+        chunks = self.kb.search("Какие бренды представлены?", top_k=3)
+        titles = [chunk.title for chunk in chunks]
+        self.assertTrue(any("Brands" in title for title in titles))
+
+    def test_retrieves_designers_for_designer_offer_question(self) -> None:
+        chunks = self.kb.search("Что вы предлагаете дизайнерам?", top_k=3)
+        titles = [chunk.title for chunk in chunks]
+        self.assertTrue(any("For Designers" in title for title in titles))
+
+    def test_retrieves_company_context_for_why_choose_question(self) -> None:
+        chunks = self.kb.search(
+            "Объясни коротко, почему стоит обратиться в Центр Красок?",
+            top_k=3,
+        )
+        titles = [chunk.title for chunk in chunks]
+        self.assertTrue(
+            any(
+                "Company Overview" in title
+                or "Business Scope" in title
+                or "Services" in title
+                for title in titles
+            )
+        )
+
     def test_search_vacancies(self) -> None:
         chunks = self.kb.search("какие есть вакансии", top_k=2)
         text = "\n".join(chunk.text for chunk in chunks)

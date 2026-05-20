@@ -138,6 +138,7 @@ tests/
 - Поддерживается Amvera API.
 - Есть offline fallback для проверки retrieval без AI API.
 - Есть краткая память диалога.
+- Есть deterministic intent handling для приветствий, чувствительных вопросов и сценариев с высоким риском галлюцинаций.
 - Есть `.env.example`, README и тесты.
 
 ## Ограничения MVP
