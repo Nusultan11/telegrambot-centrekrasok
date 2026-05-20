@@ -27,6 +27,18 @@ class KnowledgeBaseTest(unittest.TestCase):
         self.assertIn("Кабдолова", text)
         self.assertIn("+7 778 061 5000", text)
 
+    def test_retrieves_contacts_for_location_question(self) -> None:
+        chunks = self.kb.search("Где вы находитесь?", top_k=3)
+        titles = [chunk.title for chunk in chunks]
+        self.assertTrue(any("Stores And Contacts" in title for title in titles))
+
+    def test_retrieves_builders_for_contractors_question(self) -> None:
+        chunks = self.kb.search("Что вы предлагаете строителям?", top_k=3)
+        titles = [chunk.title for chunk in chunks]
+        self.assertTrue(
+            any("Builders And Contractors" in title for title in titles)
+        )
+
     def test_search_vacancies(self) -> None:
         chunks = self.kb.search("какие есть вакансии", top_k=2)
         text = "\n".join(chunk.text for chunk in chunks)

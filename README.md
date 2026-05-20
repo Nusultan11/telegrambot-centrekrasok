@@ -108,7 +108,7 @@ tests/
 | --- | --- |
 | `app/core/config.py` | Загружает токены, модели и параметры из `.env`. |
 | `app/llm/` | Изолирует работу с OpenAI-compatible API, Gemini endpoint, Amvera и offline fallback. |
-| `app/rag/` | Делит Markdown-базу на chunks и ищет релевантные фрагменты по вопросу. |
+| `app/rag/` | Делит Markdown-базу на chunks, использует keyword scoring и лёгкое расширение запроса для частых формулировок: контакты, строители, цены, наличие. |
 | `app/prompts/` | Хранит system prompt и guardrails против галлюцинаций. |
 | `src/company_bot/assistant.py` | Оркестрирует retrieval, prompt, LLM call, память диалога и fallback. |
 | `src/company_bot/memory.py` | Хранит последние сообщения пользователя и ассистента в рамках чата. |

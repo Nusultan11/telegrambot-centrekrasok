@@ -52,6 +52,32 @@ STOPWORDS = {
     "я",
 }
 
+QUERY_EXPANSIONS = {
+    "находитесь": ["адрес", "адреса", "контакты", "магазин", "салон", "алматы", "астана"],
+    "находится": ["адрес", "адреса", "контакты", "магазин", "салон"],
+    "офис": ["адрес", "адреса", "контакты", "магазин", "салон"],
+    "адрес": ["контакты", "магазин", "салон"],
+    "адреса": ["контакты", "магазин", "салон"],
+    "контакты": ["адрес", "адреса", "телефон", "email"],
+    "телефон": ["контакты", "адрес"],
+    "строителям": ["builders", "contractors", "строители", "строитель", "подрядчики", "бригады", "проекты"],
+    "строители": ["builders", "contractors", "строителям", "строитель", "подрядчики", "бригады", "проекты"],
+    "строитель": ["builders", "contractors", "строителям", "строители", "подрядчики", "бригады", "проекты"],
+    "подрядчикам": ["builders", "contractors", "строители", "строителям", "бригады", "проекты"],
+    "подрядчики": ["builders", "contractors", "строители", "строителям", "бригады", "проекты"],
+    "бригады": ["строители", "строителям", "подрядчики", "проекты"],
+    "цена": ["стоимость", "прайс", "товары", "products", "unknown"],
+    "цены": ["стоимость", "прайс", "товары", "products", "unknown"],
+    "стоит": ["цена", "стоимость", "прайс", "unknown"],
+    "стоимость": ["цена", "прайс", "товары", "products", "unknown"],
+    "наличии": ["наличие", "остатки", "товары", "products", "unknown"],
+    "наличие": ["остатки", "товары", "products", "unknown"],
+    "остатки": ["наличие", "товары", "products", "unknown"],
+    "акции": ["скидки", "promotions", "unknown"],
+    "акция": ["скидки", "promotions", "unknown"],
+    "скидки": ["акции", "promotions", "unknown"],
+}
+
 
 def tokenize(text: str) -> list[str]:
     tokens = []
@@ -61,6 +87,13 @@ def tokenize(text: str) -> list[str]:
             continue
         tokens.append(token)
     return tokens
+
+
+def expand_query_tokens(tokens: list[str]) -> list[str]:
+    expanded = list(tokens)
+    for token in tokens:
+        expanded.extend(QUERY_EXPANSIONS.get(token, []))
+    return expanded
 
 
 def _split_markdown_sections(markdown: str) -> list[tuple[str, str]]:
@@ -103,7 +136,7 @@ class KnowledgeBase:
         return cls(chunks)
 
     def search(self, query: str, top_k: int = 5) -> list[RetrievedChunk]:
-        query_tokens = tokenize(query)
+        query_tokens = expand_query_tokens(tokenize(query))
         if not query_tokens:
             return []
 
